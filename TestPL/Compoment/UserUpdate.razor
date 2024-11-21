@@ -1,0 +1,68 @@
+﻿@page "/userupdate/{Id:int}"
+@using AutoMapper
+@using MudBlazor
+@using TestBUS.Service.Interface
+@using TestBUS.ViewModel
+@inject IUserService userService
+@inject NavigationManager NavigationManager
+
+<MudCard>
+    <MudCardContent>
+        <MudText typeof="Typo.h5">Update User</MudText>
+    </MudCardContent>
+    <MudCardContent>
+        <MudTextField Label="Name" @bind-Value="_user.Name" Required="true"> Ten  </MudTextField>
+        <MudTextField Label="Email" @bind-Value="_user.Email" Required="true"> Email </MudTextField>
+        <MudTextField Label="PhoneNumber" @bind-Value="_user.PhoneNumber" Required="true"> So Dien Thoai </MudTextField>
+        <MudSelect @bind-Value="_user.Status" Label="Status" Required="true">
+            <MudSelectItem Value="@("active")">active</MudSelectItem>
+            <MudSelectItem Value="@("inactive")">inactive</MudSelectItem>
+            <MudSelectItem Value="@("suspended")">suspended</MudSelectItem>
+        </MudSelect>
+    </MudCardContent>
+
+    <MudCardActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveUser">Update</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Cancel">Back</MudButton>
+    </MudCardActions>
+</MudCard>
+
+@code {
+    private UserUpdateVM _user = new();
+    [Inject]
+    private IMapper _mapper { get; set; }
+
+    [Parameter]
+    public int Id { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUser();
+    }
+
+    private async Task LoadUser()
+    {
+        var userVm = await userService.GetByIdAsync(Id);
+        _user = _mapper.Map<UserUpdateVM>(userVm);
+    }
+
+    private async Task SaveUser()
+    {
+        try 
+        {
+            await userService.UpdateAsync(Id, _user);
+            NavigationManager.NavigateTo("/user");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Loi: {ex.Message}");
+        }
+     
+    }
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/user");
+    }
+
+}
+
+

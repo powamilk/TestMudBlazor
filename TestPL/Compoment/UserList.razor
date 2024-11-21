@@ -1,0 +1,102 @@
+﻿@page "/user"
+@using TestBUS.Service.Interface
+@using MudBlazor
+@using TestBUS.ViewModel
+@inject IDialogService DialogService
+@inject IUserService userService
+@inject NavigationManager NavigationManager
+
+<MudCard>
+    <MudCardContent>
+        <MudText typeof="Typo.h5">UserList</MudText>
+    </MudCardContent>
+    <MudCardContent>
+        <MudTable Items="_users" Loading="_loading" Dense="true">
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Email</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh>PhoneNumber</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Name</MudTd>
+                <MudTd>@context.Email</MudTd>
+                <MudTd>@context.Status</MudTd>
+                <MudTd>@context.PhoneNumber</MudTd>
+                <MudButton Variant="Variant.Text" OnClick="() => UpdateUser(context.UserId)">Edit</MudButton>
+                <MudButton Variant="Variant.Text" OnClick="() => ConfirmDeleteUser(context.UserId)">Delete</MudButton>
+            </RowTemplate>
+        </MudTable>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton  Variant="Variant.Text" Color="Color.Primary" OnClick="AddUser"> Add </MudButton>
+    </MudCardActions>
+</MudCard>
+
+<MudDialog @bind-IsOpen="_isDeleteDialogOpen">
+     <DialogContent>
+         <MudText>Confirm Delete</MudText>
+         <MudText>Bann co chac muon xoa ko</MudText>
+     </DialogContent>
+     <DialogActions>
+         <MudButton OnClick="DeleteUser">Delete</MudButton>
+         <MudButton OnClick="CancelDelete">Huy</MudButton>
+     </DialogActions>
+</MudDialog>
+
+@code {
+    private List<UserVM> _users = new();
+    private bool _loading = true;
+    private bool _isDeleteDialogOpen = false;
+    private int _userIdToDelete;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        _loading = true;
+        _users = await userService.GetAllAsync();
+        _loading = false;
+    }
+
+    private void AddUser()
+    {
+        NavigationManager.NavigateTo("/usercreate");
+    }
+    private void UpdateUser(int id)
+    {
+        NavigationManager.NavigateTo($"/userupdate/{id}");
+    }
+
+    private void ConfirmDeleteUser(int userId)
+    {
+        _userIdToDelete = userId;
+        _isDeleteDialogOpen = true;
+    }
+
+    private async Task DeleteUser()
+    {
+        try
+        {
+            _isDeleteDialogOpen = false;
+            await userService.DeleteAsync(_userIdToDelete);
+            _users.RemoveAll(u => u.UserId == _userIdToDelete);
+        }
+        catch (Exception ex)
+        {
+            {
+                Console.WriteLine($"Co loi xay ra :{ex.Message}");
+                throw;
+            }
+        }
+    }
+
+    private void CancelDelete()
+    {
+        _isDeleteDialogOpen = false;
+    }
+}
