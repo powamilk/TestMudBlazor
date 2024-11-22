@@ -1,0 +1,223 @@
+﻿@page "/user"
+@using TestBUS.Service.Interface
+@using TestBUS.ViewModel
+@inject IUserService userService
+@inject NavigationManager NavigationManager
+
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 16px;
+        text-align: left;
+    }
+
+    th, td {
+        padding: 12px;
+        border: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f4f4f4;
+    }
+
+    .btn {
+        padding: 6px 12px;
+        margin: 2px;
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+    }
+
+    .btn-danger:hover {
+        background-color: #a71d2a;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+        border: none;
+    }
+
+    .btn-success:hover {
+        background-color: #1e7e34;
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1050;
+        display: block;
+        background: white;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-header {
+        padding: 15px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .modal-footer {
+        padding: 15px;
+        border-top: 1px solid #e9ecef;
+        text-align: right;
+    }
+
+    .modal-body {
+        padding: 15px;
+    }
+</style>
+
+<h3>User List</h3>
+
+@if (_loading)
+{
+    <p>Loading...</p>
+}
+else if (_users != null && _users.Any())
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>PhoneNumber</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in _users)
+            {
+                <tr>
+                    <td>@user.Name</td>
+                    <td>@user.Email</td>
+                    <td>@user.Status</td>
+                    <td>@user.PhoneNumber</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => UpdateUser(user.UserId)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => ConfirmDeleteUser(user.UserId, user.Name)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No users found.</p>
+}
+
+<button class="btn btn-success" @onclick="AddUser">Add New User</button>
+
+@if (_showDeleteConfirmation)
+{
+    <div class="modal">
+        <div class="modal-header">
+            <h5 class="modal-title">Confirm Delete</h5>
+            <button type="button" class="btn btn-secondary" @onclick="CancelDelete">×</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete <strong>@_userNameToDelete</strong>?</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger" @onclick="DeleteUser">Delete</button>
+            <button class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
+        </div>
+    </div>
+    <div class="modal-backdrop"></div>
+}
+
+@code {
+    private List<UserVM> _users = new();
+    private bool _loading = true;
+    private bool _showDeleteConfirmation = false;
+    private int _userIdToDelete;
+    private string _userNameToDelete = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        _loading = true;
+        try
+        {
+            _users = await userService.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading users: {ex.Message}");
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void AddUser()
+    {
+        NavigationManager.NavigateTo("/usercreate");
+    }
+
+    private void UpdateUser(int id)
+    {
+        NavigationManager.NavigateTo($"/userupdate/{id}");
+    }
+
+    private void ConfirmDeleteUser(int userId, string userName)
+    {
+        _userIdToDelete = userId;
+        _userNameToDelete = userName;
+        _showDeleteConfirmation = true;
+    }
+
+    private async Task DeleteUser()
+    {
+        try
+        {
+            _showDeleteConfirmation = false;
+            await userService.DeleteAsync(_userIdToDelete);
+            _users.RemoveAll(u => u.UserId == _userIdToDelete);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting user: {ex.Message}");
+        }
+    }
+
+    private void CancelDelete()
+    {
+        _showDeleteConfirmation = false;
+    }
+}
