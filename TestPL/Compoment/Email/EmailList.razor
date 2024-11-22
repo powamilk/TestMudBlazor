@@ -1,0 +1,116 @@
+﻿@page "/emails"
+@using MudBlazor
+@using TestBUS.Service.Interface
+@using TestBUS.ViewModel.Email
+@inject IEmailService EmailService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+
+<h3>Email List</h3>
+
+@if (_loading)
+{
+    <p>Loading...</p>
+}
+else if (_emails != null && _emails.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var email in _emails)
+            {
+                <tr>
+                    <td>@email.Subject</td>
+                    <td>@email.Status</td>
+                    <td>@email.Priority</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" @onclick="() => EditEmail(email.EmailId)">Edit</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => ShowDeleteDialog(email.EmailId, email.Subject)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No emails found.</p>
+}
+
+<button class="btn btn-success" @onclick="AddEmail">Add New Email</button>
+
+@code {
+    private List<EmailVM> _emails = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEmails();
+    }
+
+    private async Task LoadEmails()
+    {
+        _loading = true;
+        try
+        {
+            _emails = await EmailService.GetAllAsync();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void AddEmail()
+    {
+        NavigationManager.NavigateTo("/emailcreate");
+    }
+
+    private void EditEmail(int id)
+    {
+        NavigationManager.NavigateTo($"/emailupdate/{id}");
+    }
+
+    private async Task ShowDeleteDialog(int emailId, string subject)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ItemName", subject }
+        };
+
+        var options = new DialogOptions
+            {
+                CloseButton = true,
+                MaxWidth = MaxWidth.Small,
+                FullWidth = true
+            };
+
+        var dialog = DialogService.Show<DeleteDialog>("Confirm Delete", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await DeleteEmail(emailId);
+        }
+    }
+
+    private async Task DeleteEmail(int emailId)
+    {
+        try
+        {
+            await EmailService.DeleteAsync(emailId);
+            _emails.RemoveAll(e => e.EmailId == emailId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting email: {ex.Message}");
+        }
+    }
+}

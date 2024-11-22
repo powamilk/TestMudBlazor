@@ -1,29 +1,51 @@
-﻿@using MudBlazor
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 
-<MudThemeProvider />
-<MudPopoverProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
+<div class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <button class="btn btn-light me-2" @onclick="ToggleDrawer">
+            <i class="bi bi-list"></i> 
+        </button>
+        <span class="navbar-brand">My Application</span>
+    </div>
+</div>
 
-<MudLayout>
-    <MudAppBar>
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        My Application
-    </MudAppBar>
-    <MudDrawer @bind-Open="@_drawerOpen">
-        <NavMenu/>
-    </MudDrawer>
-    <MudMainContent>
+<div class="d-flex">
+    <div class="drawer" style="width: @(drawerOpen ? "250px" : "0"); transition: width 0.3s ease;">
+        <NavMenu />
+    </div>
+
+    <div class="main-content flex-grow-1 px-3">
         @Body
-    </MudMainContent>
-</MudLayout>
+    </div>
+</div>
+
+<style>
+    .drawer {
+        background-color: #f8f9fa;
+        overflow: hidden;
+        border-right: 1px solid #ddd;
+        height: 100vh;
+    }
+
+    .main-content {
+        padding: 20px;
+    }
+
+    .navbar-brand {
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+
+    .navbar {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+</style>
 
 @code {
-    bool _drawerOpen = true;
+    private bool drawerOpen = true;
 
-    void DrawerToggle()
+    private void ToggleDrawer()
     {
-        _drawerOpen = !_drawerOpen;
+        drawerOpen = !drawerOpen;
     }
 }

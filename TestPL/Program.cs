@@ -15,6 +15,8 @@ builder.Services.AddMudServices();
 builder.Services.AddScoped<IApiService, ApiService>();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+    builder.Services.AddScoped<IEmailHistoryService, EmailHistoryService>();
 builder.Services.AddScoped(sp => new HttpClient
 {
     BaseAddress = new Uri("https://localhost:7163")
