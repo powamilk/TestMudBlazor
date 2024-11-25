@@ -1,0 +1,58 @@
+﻿@page "/emailhistory/create"
+@using BUS.Service.Interface
+@using BUS.ViewModel.EmailHistory
+@using MudBlazor
+@inject IEmailHistoryService EmailHistoryService
+@inject NavigationManager NavigationManager
+
+<MudText Typo="Typo.h3" Class="mb-4">Create New Email History</MudText>
+
+<MudPaper Elevation="1" Class="pa-4">
+    <MudForm @ref="form">
+        <MudTextField Label="Email ID" Type="number" @bind-Value="_emailHistory.EmailId" Required="true" Class="mb-3" />
+        <MudTextField Label="Recipient" @bind-Value="_emailHistory.Recipient" Required="true" Class="mb-3" />
+        <MudSelect T="string" Label="Status" @bind-Value="_emailHistory.Status" Required="true" Class="mb-3">
+            <MudSelectItem Value="@("delivered")">Delivered</MudSelectItem>
+            <MudSelectItem Value="@("opened")">Opened</MudSelectItem>
+            <MudSelectItem Value="@("bounced")">Bounced</MudSelectItem>
+            <MudSelectItem Value="@("failed")">Failed</MudSelectItem>
+        </MudSelect>
+        <MudTextField Label="Error Message" @bind-Value="_emailHistory.ErrorMessage" Class="mb-3" />
+        <MudTextField Label="Retry Count" Type="number" @bind-Value="_emailHistory.RetryCount" Required="true" Class="mb-3" />
+    </MudForm>
+    <MudDivider Class="my-4" />
+    <MudStack Direction="Row" Spacing="2">
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveEmailHistory">Save</MudButton>
+        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+    </MudStack>
+</MudPaper>
+
+@code {
+    private EmailHistoryCreateVM _emailHistory = new()
+    {
+        SentAt = DateTime.Now
+    };
+    private MudForm form;
+
+    private async Task SaveEmailHistory()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            try
+            {
+                await EmailHistoryService.AddAsync(_emailHistory);
+                NavigationManager.NavigateTo("/emailhistories");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/emailhistories");
+    }
+}

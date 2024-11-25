@@ -1,0 +1,115 @@
+﻿@page "/emailhistories"
+@using BUS.Service.Interface
+@using BUS.ViewModel.EmailHistory
+@inject IEmailHistoryService EmailHistoryService
+@inject NavigationManager NavigationManager
+@using MudBlazor
+
+<MudText Typo="Typo.h3">Email Histories</MudText>
+
+@if (_loading)
+{
+    <MudText Typo="Typo.body1">Loading...</MudText>
+}
+else if (_emailHistories != null && _emailHistories.Any())
+{
+    <MudTable Items="_emailHistories" Dense="true" Hover="true">
+        <HeaderContent>
+            <MudTh>Recipient</MudTh>
+            <MudTh>Sent At</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Error Message</MudTh>
+            <MudTh>Retry Count</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Recipient</MudTd>
+            <MudTd>@context.SentAt.ToString("yyyy-MM-dd HH:mm")</MudTd>
+            <MudTd>@context.Status</MudTd>
+            <MudTd>@context.ErrorMessage</MudTd>
+            <MudTd>@context.RetryCount</MudTd>
+            <MudTd>
+                <MudButton Color="Color.Primary" Size="Size.Small" OnClick="() => EditEmailHistory(context.HistoryId)">Edit</MudButton>
+                <MudButton Color="Color.Error" Size="Size.Small" OnClick="() => ConfirmDelete(context.HistoryId, context.Recipient)">Delete</MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+else
+{
+    <MudText Typo="Typo.body1">No email histories found.</MudText>
+}
+
+<MudButton Color="Color.Success" Variant="Variant.Filled" OnClick="AddEmailHistory">Add New Email History</MudButton>
+
+<MudDialog @bind-IsVisible="_showDeleteDialog" MaxWidth="MaxWidth.Small">
+    <DialogContent>
+        <MudText Typo="Typo.h6">Confirm Delete</MudText>
+        <MudText Typo="Typo.body1">Are you sure you want to delete email history for <strong>@_recipientToDelete</strong>?</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Error" OnClick="DeleteEmailHistory">Delete</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="CancelDelete">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<EmailHistoryVM> _emailHistories = new();
+    private bool _loading = true;
+    private bool _showDeleteDialog = false;
+    private int _historyIdToDelete;
+    private string _recipientToDelete = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEmailHistories();
+    }
+
+    private async Task LoadEmailHistories()
+    {
+        _loading = true;
+        try
+        {
+            _emailHistories = await EmailHistoryService.GetAllAsync();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void AddEmailHistory()
+    {
+        NavigationManager.NavigateTo("/emailhistory/create");
+    }
+
+    private void EditEmailHistory(int id)
+    {
+        NavigationManager.NavigateTo($"/emailhistory/update/{id}");
+    }
+
+    private void ConfirmDelete(int historyId, string recipient)
+    {
+        _historyIdToDelete = historyId;
+        _recipientToDelete = recipient;
+        _showDeleteDialog = true;
+    }
+
+    private async Task DeleteEmailHistory()
+    {
+        try
+        {
+            await EmailHistoryService.DeleteAsync(_historyIdToDelete);
+            _emailHistories.RemoveAll(h => h.HistoryId == _historyIdToDelete);
+        }
+        finally
+        {
+            _showDeleteDialog = false;
+        }
+    }
+
+    private void CancelDelete()
+    {
+        _showDeleteDialog = false;
+    }
+}

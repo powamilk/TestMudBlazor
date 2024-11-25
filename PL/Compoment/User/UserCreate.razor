@@ -1,0 +1,59 @@
+﻿@page "/usercreate"
+@using BUS.ViewModel.User
+@using BUS.Service.Interface
+@using BUS.ViewModel
+@using BUS.ViewModel.User
+@using MudBlazor
+@inject IUserService userService
+@inject NavigationManager NavigationManager
+
+<MudText Typo="Typo.h3" Class="mb-4">Create New User</MudText>
+
+<MudPaper Elevation="1" Class="pa-4 mx-auto" Style="max-width: 600px;">
+    <MudForm @ref="form">
+        <MudTextField Label="Name" @bind-Value="_user.Name" Required="true" Class="mb-3" />
+        <MudTextField Label="Email" @bind-Value="_user.Email" Required="true" Type="email" Class="mb-3" />
+        <MudTextField Label="Phone Number" @bind-Value="_user.PhoneNumber" Class="mb-3" />
+        <MudSelect T="string" Label="Status" @bind-Value="_user.Status" Required="true" Class="mb-3">
+            <MudSelectItem Value="(@"active")">Active</MudSelectItem>
+            <MudSelectItem Value="(@"inactive")">Inactive</MudSelectItem>
+            <MudSelectItem Value="(@"suspended")">Suspended</MudSelectItem>
+        </MudSelect>
+    </MudForm>
+    <MudDivider Class="my-4" />
+    <MudStack Direction="Row" Spacing="2" >
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveUser">Add</MudButton>
+        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">Back</MudButton>
+    </MudStack>
+</MudPaper>
+
+@code {
+    private UserCreateVM _user = new()
+        {
+            Status = "active"
+        };
+
+    private MudForm form;
+
+    private async Task SaveUser()
+    {
+        await form.Validate();
+        if (form.IsValid)
+        {
+            try
+            {
+                await userService.CreateAsync(_user);
+                NavigationManager.NavigateTo("/user");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/user");
+    }
+}

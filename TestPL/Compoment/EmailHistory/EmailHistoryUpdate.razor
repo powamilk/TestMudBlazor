@@ -1,6 +1,6 @@
 ﻿@page "/emailhistory/update/{Id:int}"
-@using TestBUS.Service.Interface
-@using TestBUS.ViewModel.EmailHistory
+@    using TestBUS.Service.Interface
+@    using TestBUS.ViewModel.EmailHistory
 @inject IEmailHistoryService EmailHistoryService
 @inject NavigationManager NavigationManager
 
@@ -11,7 +11,7 @@
         <form>
             <div class="form-group">
                 <label for="emailId">Email ID</label>
-                <input type="number" id="emailId" class="form-control" @bind="_emailHistory.EmailId" />
+                <input type="number" id="emailId" class="form-control" @bind="_emailHistory.EmailId" disabled />
             </div>
 
             <div class="form-group">
@@ -35,6 +35,11 @@
             </div>
 
             <div class="form-group">
+                <label for="errorMessage">Error Message</label>
+                <input type="text" id="errorMessage" class="form-control" @bind="_emailHistory.ErrorMessage" />
+            </div>
+
+            <div class="form-group">
                 <label for="retryCount">Retry Count</label>
                 <input type="number" id="retryCount" class="form-control" @bind="_emailHistory.RetryCount" />
             </div>
@@ -55,16 +60,24 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var emailHistory = await EmailHistoryService.GetByIdAsync(Id);
-        _emailHistory = new EmailHistoryUpdateVM
-            {
-                HistoryId = emailHistory.HistoryId,
-                EmailId = emailHistory.EmailId,
-                Recipient = emailHistory.Recipient,
-                SentAt = emailHistory.SentAt,
-                Status = emailHistory.Status,
-                RetryCount = emailHistory.RetryCount
-            };
+        try
+        {
+            var emailHistory = await EmailHistoryService.GetByIdAsync(Id);
+            _emailHistory = new EmailHistoryUpdateVM
+                {
+                    HistoryId = emailHistory.HistoryId,
+                    EmailId = emailHistory.EmailId,
+                    Recipient = emailHistory.Recipient,
+                    SentAt = emailHistory.SentAt,
+                    Status = emailHistory.Status,
+                    ErrorMessage = emailHistory.ErrorMessage,
+                    RetryCount = emailHistory.RetryCount
+                };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading email history: {ex.Message}");
+        }
     }
 
     private async Task UpdateEmailHistory()
@@ -76,7 +89,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            Console.WriteLine($"Error updating email history: {ex.Message}");
         }
     }
 

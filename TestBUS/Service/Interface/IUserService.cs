@@ -1,11 +1,11 @@
-﻿using System;
+﻿using BUS.ViewModel.User;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TestBUS.ViewModel.User;
 
-namespace TestBUS.Service.Interface
+namespace BUS.Service.Interface
 {
     public interface IUserService
     {

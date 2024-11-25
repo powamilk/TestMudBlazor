@@ -1,0 +1,88 @@
+﻿@page "/emailupdate/{Id:int}"
+@using BUS.Service.Interface
+@using BUS.ViewModel.Email
+@inject IEmailService EmailService
+@inject NavigationManager NavigationManager
+@using MudBlazor
+
+<MudText Typo="Typo.h3">Update Email</MudText>
+
+<MudPaper Elevation="1" Class="pa-4">
+    <MudForm Model="_email" @ref="form">
+        <MudTextField Label="User ID" Type="number" @bind-Value="_email.UserId" Required="true" />
+        <MudTextField Label="Subject" @bind-Value="_email.Subject" Required="true" />
+        <MudTextField Label="Body" @bind-Value="_email.Body" Multiline="true" Rows="4" />
+        <MudSelect T="int" Label="Priority" @bind-Value="_email.Priority">
+            <MudSelectItem Value="1">High</MudSelectItem>
+            <MudSelectItem Value="2">Medium</MudSelectItem>
+            <MudSelectItem Value="3">Low</MudSelectItem>
+        </MudSelect>
+        <MudTextField Label="Attachment Count" Type="number" @bind-Value="_email.AttachmentCount" />
+        <MudSelect T="string" Label="Status" @bind-Value="_email.Status">
+            <MudSelectItem Value="@("draft")">Draft</MudSelectItem>
+            <MudSelectItem Value="@("sent")">Sent</MudSelectItem>
+            <MudSelectItem Value="@("failed")">Failed</MudSelectItem>
+            <MudSelectItem Value="@("scheduled")">Scheduled</MudSelectItem>
+        </MudSelect>
+    </MudForm>
+    <MudDivider Class="my-4" />
+    <MudStack Direction="Row" Spacing="2">
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="UpdateEmail">Update</MudButton>
+        <MudButton Color="Color.Secondary" Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+    </MudStack>
+</MudPaper>
+
+@code {
+    private EmailUpdateVM _email = new();
+    private MudForm form;
+
+    [Parameter]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEmail();
+    }
+
+    private async Task LoadEmail()
+    {
+        try
+        {
+            var email = await EmailService.GetByIdAsync(Id);
+            _email = new EmailUpdateVM
+                {
+                    UserId = email.UserId,
+                    Subject = email.Subject,
+                    Body = email.Body,
+                    Priority = email.Priority,
+                    AttachmentCount = email.AttachmentCount,
+                    Status = email.Status
+                };
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading email: {ex.Message}");
+        }
+    }
+
+    private async Task UpdateEmail()
+    {
+        if (form.IsValid)
+        {
+            try
+            {
+                await EmailService.UpdateAsync(_email);
+                NavigationManager.NavigateTo("/emails");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating email: {ex.Message}");
+            }
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/emails");
+    }
+}

@@ -1,13 +1,13 @@
-﻿using System;
+﻿using BUS.Service.Interface;
+using BUS.ViewModel.Email;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TestBUS.Service.Interface;
-using TestBUS.ViewModel.Email;
 using TestDAL.Repo.Interface;
 
-namespace TestBUS.Service.Implement
+namespace BUS.Service.Implement
 {
     public class EmailService : IEmailService
     {

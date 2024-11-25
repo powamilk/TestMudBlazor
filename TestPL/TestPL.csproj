@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TestBUS\TestBUS.csproj" />
+    <ProjectReference Include="..\TestBUS\BUS.csproj" />
   </ItemGroup>
 
 </Project>

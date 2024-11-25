@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TestBUS.ViewModel.EmailHistory
+namespace BUS.ViewModel.EmailHistory
 {
     public class EmailHistoryUpdateVM
     {
@@ -12,7 +12,7 @@ namespace TestBUS.ViewModel.EmailHistory
         public int EmailId { get; set; }
         public string Recipient { get; set; }
         public DateTime SentAt { get; set; }
-        public string Status { get; set; } 
+        public string Status { get; set; }
         public string ErrorMessage { get; set; }
         public int RetryCount { get; set; }
     }

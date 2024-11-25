@@ -1,6 +1,6 @@
 ﻿@page "/emailhistory/create"
-@using TestBUS.Service.Interface
-@using TestBUS.ViewModel.EmailHistory
+@    using TestBUS.Service.Interface
+@    using TestBUS.ViewModel.EmailHistory
 @inject IEmailHistoryService EmailHistoryService
 @inject NavigationManager NavigationManager
 
@@ -35,6 +35,11 @@
             </div>
 
             <div class="form-group">
+                <label for="errorMessage">Error Message</label>
+                <input type="text" id="errorMessage" class="form-control" @bind="_emailHistory.ErrorMessage" />
+            </div>
+
+            <div class="form-group">
                 <label for="retryCount">Retry Count</label>
                 <input type="number" id="retryCount" class="form-control" @bind="_emailHistory.RetryCount" />
             </div>
@@ -48,12 +53,16 @@
 </div>
 
 @code {
-    private EmailHistoryCreateVM _emailHistory = new();
+    private EmailHistoryCreateVM _emailHistory = new()
+        {
+            SentAt = DateTime.Now 
+        };
 
     private async Task SaveEmailHistory()
     {
         try
         {
+            Console.WriteLine($"EmailHistory Data: {System.Text.Json.JsonSerializer.Serialize(_emailHistory)}");
             await EmailHistoryService.AddAsync(_emailHistory);
             NavigationManager.NavigateTo("/emailhistories");
         }
@@ -62,6 +71,7 @@
             Console.WriteLine($"Error: {ex.Message}");
         }
     }
+
 
     private void Cancel()
     {

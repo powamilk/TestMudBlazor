@@ -1,0 +1,109 @@
+﻿@page "/emails"
+@using MudBlazor
+@using BUS.Service.Interface
+@using BUS.ViewModel.Email
+@inject IEmailService EmailService
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+
+<MudText Typo="Typo.h3">Email List</MudText>
+
+@if (_loading)
+{
+    <MudText Typo="Typo.body1">Loading...</MudText>
+}
+else if (_emails != null && _emails.Any())
+{
+    <MudTable Items="_emails" Dense="true">
+        <HeaderContent>
+            <MudTh>Subject</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Priority</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Subject</MudTd>
+            <MudTd>@context.Status</MudTd>
+            <MudTd>@context.Priority</MudTd>
+            <MudTd>
+                <MudButton Color="Color.Primary" Size="Size.Small" OnClick="() => EditEmail(context.EmailId)">Edit</MudButton>
+                <MudButton Color="Color.Error" Size="Size.Small" OnClick="() => ShowDeleteDialog(context.EmailId, context.Subject)">Delete</MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+else
+{
+    <MudText Typo="Typo.body1">No emails found.</MudText>
+}
+
+<MudButton Color="Color.Success" Variant="Variant.Filled" OnClick="AddEmail">Add New Email</MudButton>
+
+@code {
+    private List<EmailVM> _emails = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEmails();
+    }
+
+    private async Task LoadEmails()
+    {
+        _loading = true;
+        try
+        {
+            _emails = await EmailService.GetAllAsync();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void AddEmail()
+    {
+        NavigationManager.NavigateTo("/emailcreate");
+    }
+
+    private void EditEmail(int id)
+    {
+        NavigationManager.NavigateTo($"/emailupdate/{id}");
+    }
+
+    private async Task ShowDeleteDialog(int emailId, string subject)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ItemName", subject }
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = DialogService.Show<DeleteDialog>("Confirm Delete", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await DeleteEmail(emailId);
+        }
+    }
+
+    private async Task DeleteEmail(int emailId)
+    {
+        try
+        {
+            await EmailService.DeleteAsync(emailId);
+            _emails.RemoveAll(e => e.EmailId == emailId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting email: {ex.Message}");
+        }
+    }
+}

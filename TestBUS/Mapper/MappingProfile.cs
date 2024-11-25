@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
+using BUS.ViewModel.User;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TestBUS.ViewModel.User;
 
-namespace TestBUS.Mapper
+namespace BUS.Mapper
 {
     public class MappingProfile : Profile
     {

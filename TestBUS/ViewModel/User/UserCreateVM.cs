@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TestBUS.ViewModel.User
+namespace BUS.ViewModel.User
 {
     public class UserCreateVM
     {
